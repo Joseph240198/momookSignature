@@ -77,7 +77,7 @@ async def handle_request(context, request):
     if "/ffs/logs/" in url and url.endswith("/print"):
         print(f"🖨 Print URL intercepted: {url}")
 
-        # Esperar a que aparezca Save As
+        # Esperar a que aparezca Print Output As
         dlg = None
         start = time.time()
 
