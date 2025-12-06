@@ -3,7 +3,9 @@ import asyncio
 from pathlib import Path
 import time
 from pywinauto import Application, Desktop, findwindows
-import fitz   
+import fitz 
+import os
+
 #PRUEBA git 2
 USERNAME = "j.soler@baatraining.com"
 PASSWORD = "2401199883$cC"
@@ -47,6 +49,34 @@ def find_save_button(dlg):
 
     return None
 
+#==================================== INSERT SIGNATURE ================================
+async def insert_signature(pdf_path, signature_path, coords):
+    """
+    Insert image signature inside the pdf
+    
+    pdf_path: string path to pdf
+    signature_path: path to the signature, image file
+    coords: coordinates where signature is to be inserted in pdf
+    """
+     # --- 1. Crear nombre automático ---
+    base, ext = os.path.splitext(pdf_path)
+    new_path = f"{base}_signed{ext}"
+
+    # Si ya existe, crear uno incremental
+    counter = 1
+    while os.path.exists(new_path):
+        new_path = f"{base}_signed_{counter}{ext}"
+        counter += 1
+
+    x, y, n, m = coords
+    doc = fitz.open(pdf_path)
+    page = doc[-1]
+    rect = fitz.Rect(x, y, n, m)
+    page.insert_image(rect, filename=signature_path)
+    doc.save(new_path)
+    doc.close()
+    print(f"✔ PDF signed and saved in: {new_path}")
+
 
 # =================================== PLAYWRIGHT SETUP ================================
 async def create_instance():
@@ -77,7 +107,7 @@ async def handle_request(context, request):
     if "/ffs/logs/" in url and url.endswith("/print"):
         print(f"🖨 Print URL intercepted: {url}")
 
-        # Esperar a que aparezca Print Output As
+        # Wait until Save print output as shows
         dlg = None
         start = time.time()
 
@@ -122,6 +152,8 @@ async def handle_request(context, request):
         
         btn.click_input()
         print(f"💾 Saved file: {filename}")
+
+        insert_signature(filename, r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\signature")
 
 
 # =================================== MAIN =============================================
