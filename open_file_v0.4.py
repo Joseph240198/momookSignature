@@ -54,9 +54,9 @@ async def create_instance():
     browser = await playwright.chromium.launch(
         headless=False,
         channel="chrome",
-        args=["--kiosk-printing"]
+        args=["--kiosk-printing", "--start-maximized"]
     )
-    context = await browser.new_context(accept_downloads=True)
+    context = await browser.new_context(accept_downloads=True , no_viewport=True)
     page = await context.new_page()
     return page, context, browser, playwright
 
