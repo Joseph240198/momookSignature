@@ -4,7 +4,7 @@ from pathlib import Path
 import time
 from pywinauto import Application, Desktop, findwindows
 import fitz   
-#PRUEBA git
+#PRUEBA git 2
 USERNAME = "j.soler@baatraining.com"
 PASSWORD = "2401199883$cC"
 EDGE_PATH = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
