@@ -58,6 +58,19 @@ async def insert_signature(pdf_path, signature_path, coords):
     signature_path: path to the signature, image file
     coords: coordinates where signature is to be inserted in pdf
     """
+    # ---- 1) ESPERAR A QUE EL PDF EXISTA ----
+    timeout = 10
+    start = time.time()
+    print(f"⏳ Esperando a que el PDF exista: {pdf_path}")
+
+    while time.time() - start < timeout:
+        if os.path.exists(pdf_path) and os.path.getsize(pdf_path) > 0:
+            print("✅ PDF encontrado, abriendo...")
+            break
+        await asyncio.sleep(0.3)
+    else:
+        print("❌ ERROR: El PDF no apareció a tiempo, no se puede firmar.")
+        return
      # --- 1. Crear nombre automático ---
     base, ext = os.path.splitext(pdf_path)
     new_path = f"{base}_signed{ext}"
@@ -72,7 +85,7 @@ async def insert_signature(pdf_path, signature_path, coords):
     doc = fitz.open(pdf_path)
     page = doc[-1]
     rect = fitz.Rect(x, y, n, m)
-    page.insert_image(rect, filename=signature_path)
+    page.insert_image(rect, filename=signature_path, rotate=90)
     doc.save(new_path)
     doc.close()
     print(f"✔ PDF signed and saved in: {new_path}")
@@ -153,7 +166,8 @@ async def handle_request(context, request):
         btn.click_input()
         print(f"💾 Saved file: {filename}")
 
-        insert_signature(filename, r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\signature")
+        full_pdf_path = os.path.join(r"C:\Users\Jose A\Desktop\momook_signature\Techlogs", filename)
+        await insert_signature(full_pdf_path, r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\signature.png", (339.35, 547.49, 360.19, 678.42))
 
 
 # =================================== MAIN =============================================
