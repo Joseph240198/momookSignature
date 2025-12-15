@@ -5,6 +5,7 @@ import time
 from pywinauto import Application, Desktop, findwindows
 import fitz 
 import os
+import win32print, win32api
 
 #PRUEBA git 2
 USERNAME = "j.soler@baatraining.com"
@@ -48,6 +49,13 @@ def find_save_button(dlg):
             pass
 
     return None
+
+#====================================PRINT PDF=========================================
+def print_pdf(pdf_path, printer_name):
+    if not os.path.exists(pdf_path):
+        raise FileNotFoundError(pdf_path)
+    default_printer = win32print.GetDefaultPrinter()
+    #ndfjsqbfijpe
 
 #==================================== INSERT SIGNATURE ================================
 async def insert_signature(pdf_path, signature_path, coords):
