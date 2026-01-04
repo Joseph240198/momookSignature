@@ -6,12 +6,15 @@ from pywinauto import Application, Desktop, findwindows
 import fitz 
 import os
 import win32print, win32api
+import subprocess
 
 #PRUEBA git 2
 USERNAME = "j.soler@baatraining.com"
 PASSWORD = "2401199883$cC"
 EDGE_PATH = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 FOLDER_PATH = r"C:\Users\Jose A\Desktop\momook_signature\Techlogs"
+SUMATRA = r"C:\Users\Jose A\AppData\Local\SumatraPDF"
+PRINTER_NAME = "ingeniero buena"
 Path(FOLDER_PATH).mkdir(exist_ok=True)
 
 
@@ -52,10 +55,15 @@ def find_save_button(dlg):
 
 #====================================PRINT PDF=========================================
 def print_pdf(pdf_path, printer_name):
-    if not os.path.exists(pdf_path):
-        raise FileNotFoundError(pdf_path)
-    default_printer = win32print.GetDefaultPrinter()
-    #ndfjsqbfijpe
+    try:
+        subprocess.run([
+            SUMATRA,
+            "-print-to", printer_name,
+            pdf_path
+        ])
+        return 1
+    except:
+        return 0
 
 #==================================== INSERT SIGNATURE ================================
 async def insert_signature(pdf_path, signature_path, coords):
@@ -66,6 +74,7 @@ async def insert_signature(pdf_path, signature_path, coords):
     signature_path: path to the signature, image file
     coords: coordinates where signature is to be inserted in pdf
     """
+    printer_name = "ingeniero buena"
     # ---- 1) ESPERAR A QUE EL PDF EXISTA ----
     timeout = 10
     start = time.time()
@@ -97,6 +106,12 @@ async def insert_signature(pdf_path, signature_path, coords):
     doc.save(new_path)
     doc.close()
     print(f"✔ PDF signed and saved in: {new_path}")
+
+    try:
+        print_pdf(pdf_path, PRINTER_NAME)
+        print(f"PDF printed in {PRINTER_NAME}")
+    except:
+        print("PDF not printed")
 
 
 # =================================== PLAYWRIGHT SETUP ================================
