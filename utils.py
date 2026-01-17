@@ -67,7 +67,7 @@ async def insert_signature(pdf_path, signature_path, coords):
     coords: coordinates where signature is to be inserted in pdf
     """
     printer_name = "ingeniero buena"
-    # ---- 1) ESPERAR A QUE EL PDF EXISTA ----
+    # ---- wait until pdf exists ----
     timeout = 10
     start = time.time()
     print(f"⏳ Esperando a que el PDF exista: {pdf_path}")
@@ -80,11 +80,11 @@ async def insert_signature(pdf_path, signature_path, coords):
     else:
         print("❌ ERROR: El PDF no apareció a tiempo, no se puede firmar.")
         return
-     # --- 1. Crear nombre automático ---
+     # --- 1. Creat automatic name ---
     base, ext = os.path.splitext(pdf_path)
     new_path = f"{base}_signed{ext}"
 
-    # Si ya existe, crear uno incremental
+    # if it exists, use incremental one
     counter = 1
     while os.path.exists(new_path):
         new_path = f"{base}_signed_{counter}{ext}"
