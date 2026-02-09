@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="wacom_stu.vcxproj" Id="05b3494b-2709-4e98-9e4e-ef2e92096f0c" />
+</Solution>
