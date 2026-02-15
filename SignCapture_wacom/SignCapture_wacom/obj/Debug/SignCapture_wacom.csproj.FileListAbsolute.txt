@@ -1,0 +1,10 @@
+C:\Users\Jose A\Desktop\SignCapture_wacom\bin\Debug\SignCapture_wacom.exe.config
+C:\Users\Jose A\Desktop\SignCapture_wacom\bin\Debug\SignCapture_wacom.exe
+C:\Users\Jose A\Desktop\SignCapture_wacom\bin\Debug\SignCapture_wacom.pdb
+C:\Users\Jose A\Desktop\SignCapture_wacom\obj\Debug\SignCapture_wacom.csproj.AssemblyReference.cache
+C:\Users\Jose A\Desktop\SignCapture_wacom\obj\Debug\SignCapture_wacom.Form1.resources
+C:\Users\Jose A\Desktop\SignCapture_wacom\obj\Debug\SignCapture_wacom.Properties.Resources.resources
+C:\Users\Jose A\Desktop\SignCapture_wacom\obj\Debug\SignCapture_wacom.csproj.GenerateResource.cache
+C:\Users\Jose A\Desktop\SignCapture_wacom\obj\Debug\SignCapture_wacom.csproj.CoreCompileInputs.cache
+C:\Users\Jose A\Desktop\SignCapture_wacom\obj\Debug\SignCapture_wacom.exe
+C:\Users\Jose A\Desktop\SignCapture_wacom\obj\Debug\SignCapture_wacom.pdb
