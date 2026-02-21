@@ -2,6 +2,7 @@ import fitz
 import os
 import time
 import asyncio
+import subprocess
 
 
 def find_save_button(dlg):
@@ -67,6 +68,8 @@ async def insert_signature(pdf_path, signature_path, coords):
     coords: coordinates where signature is to be inserted in pdf
     """
     printer_name = "ingeniero buena"
+   
+
     # ---- wait until pdf exists ----
     timeout = 10
     start = time.time()
@@ -89,15 +92,25 @@ async def insert_signature(pdf_path, signature_path, coords):
     while os.path.exists(new_path):
         new_path = f"{base}_signed_{counter}{ext}"
         counter += 1
+    
 
-    x, y, n, m = coords
-    doc = fitz.open(pdf_path)
-    page = doc[-1]
-    rect = fitz.Rect(x, y, n, m)
-    page.insert_image(rect, filename=signature_path, rotate=90)
-    doc.save(new_path)
-    doc.close()
-    print(f"✔ PDF signed and saved in: {new_path}")
+    try:
+        x, y, n, m = coords
+        doc = fitz.open(pdf_path)
+        page = doc[-1]
+        rect = fitz.Rect(x, y, n, m)
+        page.insert_image(rect, filename=signature_path, rotate=90)
+    except:
+        print("Error inserting the image")
+
+    try:
+        doc.save(new_path)
+        doc.close()
+        print(f"✔ PDF signed and saved in: {new_path}")
+    except:
+        print("Error saving the signed pdf")
+
+    
 """
     try:
         print_pdf(pdf_path, PRINTER_NAME)

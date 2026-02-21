@@ -7,11 +7,12 @@ import fitz
 import os
 import win32print, win32api
 import subprocess
-from utils import rotate_pdf, insert_signature, find_save_button
+from utils.utils import rotate_pdf, insert_signature, find_save_button
+import threading
 
 #PRUEBA git 2
 USERNAME = "j.soler@baatraining.com"
-PASSWORD = "2401199883$cC"
+PASSWORD = "2401199883cCc"
 EDGE_PATH = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 FOLDER_PATH = r"C:\Users\Jose A\Desktop\momook_signature\Techlogs"
 SUMATRA = r"C:\Users\Jose A\AppData\Local\SumatraPDF"
@@ -83,6 +84,9 @@ async def handle_request(context, request):
 
         dlg.wait('visible', timeout=5)
 
+
+        exe_path = r"C:\Users\Jose A\Desktop\WacomSTU_Console\bin\Debug\WacomSTU_Console.exe"
+    
         # ----- Set filename -----
         filename = f"document_{int(time.time() * 1000)}.pdf"
         full_path = os.path.join(FOLDER_PATH, filename)
@@ -98,7 +102,7 @@ async def handle_request(context, request):
                     break
         except:
             print("❌ Path not written correctly")
-
+        
         # ---- Find Save button ----
         try:
             btn = find_save_button(dlg)
@@ -111,14 +115,60 @@ async def handle_request(context, request):
                 print(f"💾 Saved file: {filename}")
         except:
             print("❌ Save button error")
-
+        
         # --------Insert signature in pdf ----------
         try:
-            await insert_signature(full_path, r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\signature.png", (339.35, 547.49, 360.19, 678.42))
+            try:
+                # Lanza el exe 
+                process = subprocess.Popen([exe_path],
+                                stdin=subprocess.PIPE,
+                                stdout=subprocess.PIPE,
+                                text=True)
+                
+
+                # Hacer otras cosas mientras el exe corre...
+                print("WacomSTU Console running in background")
+            except:
+                print("Error opening wacom tablet")
+            
+            status = wait_for_status(timeout=10)
+            if status == "OK":
+                print(status)
+                if os.path.exist(r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\signature\WacomStatus.txt"):
+
+                    await insert_signature(full_path, r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\signature\signature.png", (339.35, 547.49, 360.19, 678.42))
+                    time.sleep(0.5)
+                    os.path.delete(r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\signature\WacomStatus.txt")
+                    
+            else:
+                print("No se recibió ningún mensaje (timeout)")    
         except:
             print("❌ Error inserting signature")
 
 
+
+def wait_for_status(file_path=r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\signature\WacomStatus.txt", timeout=10):
+    """
+    Espera hasta que el archivo `status.txt` exista y tenga contenido.
+    Devuelve la primera línea como string.
+    Si se alcanza el timeout (segundos), devuelve None.
+    """
+    start_time = time.time()
+    
+    while True:
+        if os.path.exists(file_path):
+            with open(file_path, "r") as f:
+                line = f.readline().strip()
+                if line:  # Si hay algo escrito
+                    return line
+        # Timeout
+        if time.time() - start_time > timeout:
+            return None
+        time.sleep(0.1)  # evitar consumir CPU
+
+
+
+# ======================================================================================       
 # =================================== MAIN =============================================
 async def main():
     main_page, context, browser, playwright = await create_instance()
