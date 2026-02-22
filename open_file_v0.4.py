@@ -7,7 +7,7 @@ import fitz
 import os
 import win32print, win32api
 import subprocess
-from utils.utils import rotate_pdf, insert_signature, find_save_button
+from utils.utils import rotate_pdf, insert_signature, find_save_button, clean_signature_folder, wait_for_image, wait_for_status
 import threading
 
 #PRUEBA git 2
@@ -131,46 +131,39 @@ async def handle_request(context, request):
             except:
                 print("Error opening wacom tablet")
             
-            status = wait_for_status(timeout=10)
+            status = wait_for_status(timeout=40)
+            signature_exists = wait_for_image(timeout = 40)
+
             if status == "OK":
                 print(status)
-                if os.path.exist(r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\signature\WacomStatus.txt"):
-
-                    await insert_signature(full_path, r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\signature\signature.png", (339.35, 547.49, 360.19, 678.42))
-                    time.sleep(0.5)
-                    os.path.delete(r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\signature\WacomStatus.txt")
+                if signature_exists:
+                    insert_signature(full_path, r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\signature\signature.png", (339.35, 547.49, 360.19, 678.42))
+                    time.sleep(0.2)
+                    clean_signature_folder()
+                    return
                     
-            else:
-                print("No se recibió ningún mensaje (timeout)")    
+            if status is None:
+                print("No message received (timeout)")  
+                #remove downloaded PDF
+                os.remove(full_path)
+                #clean signature folder
+                clean_signature_folder()
+
+            if status == "CANCEL":
+                #remove downloaded PDF
+                os.remove(full_path)
+                #clean signature folder
+                clean_signature_folder()
+
         except:
             print("❌ Error inserting signature")
-
-
-
-def wait_for_status(file_path=r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\signature\WacomStatus.txt", timeout=10):
-    """
-    Espera hasta que el archivo `status.txt` exista y tenga contenido.
-    Devuelve la primera línea como string.
-    Si se alcanza el timeout (segundos), devuelve None.
-    """
-    start_time = time.time()
-    
-    while True:
-        if os.path.exists(file_path):
-            with open(file_path, "r") as f:
-                line = f.readline().strip()
-                if line:  # Si hay algo escrito
-                    return line
-        # Timeout
-        if time.time() - start_time > timeout:
-            return None
-        time.sleep(0.1)  # evitar consumir CPU
-
+            clean_signature_folder()
 
 
 # ======================================================================================       
 # =================================== MAIN =============================================
 async def main():
+    clean_signature_folder()
     main_page, context, browser, playwright = await create_instance()
     print("🌐 Browser launched")
 

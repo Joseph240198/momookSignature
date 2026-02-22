@@ -59,7 +59,7 @@ def rotate_pdf(pdf_path, output_path, degrees=90):
     print(f"✔ Rotated PDF saved in: {output_path}")
 
 #==================================== INSERT SIGNATURE ================================
-async def insert_signature(pdf_path, signature_path, coords):
+def insert_signature(pdf_path, signature_path, coords):
     """
     Insert image signature inside the pdf
     
@@ -79,7 +79,7 @@ async def insert_signature(pdf_path, signature_path, coords):
         if os.path.exists(pdf_path) and os.path.getsize(pdf_path) > 0:
             print("✅ PDF encontrado, abriendo...")
             break
-        await asyncio.sleep(0.3)
+        time.sleep(0.3)
     else:
         print("❌ ERROR: El PDF no apareció a tiempo, no se puede firmar.")
         return
@@ -118,3 +118,61 @@ async def insert_signature(pdf_path, signature_path, coords):
     except:
         print("PDF not printed")
 """
+
+# ================Clean signature folder===============================
+
+def clean_signature_folder():
+
+    signaure_path = r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\signature\signature.png"
+    status_path = r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\signature\WacomStatus.txt"
+    try:
+        if os.path.exists(signaure_path):
+            os.remove(signaure_path)
+
+        if os.path.exists(status_path):
+            os.remove(status_path)   
+    except:
+
+        print("Error removing files in signature folder")
+    
+# ===================== Wait for signature image ========================================
+def wait_for_image(file_path = r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\signature\signature.png", timeout=10):
+    """
+    Espera hasta que exista el archivo de imagen.
+
+    :param file_path: Ruta del archivo a comprobar
+    :param timeout: Tiempo máximo de espera en segundos
+    :return: 1 si el archivo aparece, 0 si se alcanza el timeout
+    """
+    start_time = time.time()
+
+    while True:
+        if os.path.exists(file_path):
+            return 1
+
+        if time.time() - start_time > timeout:
+            return 0
+
+        time.sleep(0.05)  # pequeña pausa para no saturar CPU
+
+
+# =============================== Wait for status txt to be available ===========================
+
+def wait_for_status(file_path=r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\signature\WacomStatus.txt", timeout=10):
+    """
+    Espera hasta que el archivo `status.txt` exista y tenga contenido.
+    Devuelve la primera línea como string.
+    Si se alcanza el timeout (segundos), devuelve None.
+    """
+    start_time = time.time()
+    
+    while True:
+        if os.path.exists(file_path):
+            with open(file_path, "r") as f:
+                line = f.readline().strip()
+                if line:  # Si hay algo escrito
+                    return line
+        # Timeout
+        if time.time() - start_time > timeout:
+            return None
+        time.sleep(0.1)  # evitar consumir CPU
