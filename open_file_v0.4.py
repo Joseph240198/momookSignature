@@ -3,7 +3,7 @@ import asyncio
 from pathlib import Path
 import time
 from pywinauto import Application, Desktop, findwindows
-import fitz 
+import ctypes
 import os
 import win32print, win32api
 import subprocess
@@ -131,6 +131,7 @@ async def handle_request(context, request):
             except:
                 print("Error opening wacom tablet")
             
+            
             status = wait_for_status(timeout=40)
             signature_exists = wait_for_image(timeout = 40)
 
@@ -140,6 +141,7 @@ async def handle_request(context, request):
                     insert_signature(full_path, r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\signature\signature.png", (339.35, 547.49, 360.19, 678.42))
                     time.sleep(0.2)
                     clean_signature_folder()
+                    
                     return
                     
             if status is None:

@@ -3,6 +3,8 @@ import os
 import time
 import asyncio
 import subprocess
+import threading
+
 
 
 def find_save_button(dlg):
@@ -159,6 +161,8 @@ def wait_for_image(file_path = r"C:\Users\Jose A\Desktop\momook_signature\Techlo
 # =============================== Wait for status txt to be available ===========================
 
 def wait_for_status(file_path=r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\signature\WacomStatus.txt", timeout=10):
+
+
     """
     Espera hasta que el archivo `status.txt` exista y tenga contenido.
     Devuelve la primera línea como string.
@@ -176,3 +180,8 @@ def wait_for_status(file_path=r"C:\Users\Jose A\Desktop\momook_signature\Techlog
         if time.time() - start_time > timeout:
             return None
         time.sleep(0.1)  # evitar consumir CPU
+
+
+
+
+# ======================= MESSAGE POPUP FUNCTIONS ====================================
