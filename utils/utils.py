@@ -181,7 +181,3 @@ def wait_for_status(file_path=r"C:\Users\Jose A\Desktop\momook_signature\Techlog
             return None
         time.sleep(0.1)  # evitar consumir CPU
 
-
-
-
-# ======================= MESSAGE POPUP FUNCTIONS ====================================

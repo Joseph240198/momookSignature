@@ -9,6 +9,7 @@ import win32print, win32api
 import subprocess
 from utils.utils import rotate_pdf, insert_signature, find_save_button, clean_signature_folder, wait_for_image, wait_for_status
 import threading
+from utils.ui_lib import UILibrary 
 
 #PRUEBA git 2
 USERNAME = "j.soler@baatraining.com"
@@ -17,6 +18,8 @@ EDGE_PATH = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 FOLDER_PATH = r"C:\Users\Jose A\Desktop\momook_signature\Techlogs"
 SUMATRA = r"C:\Users\Jose A\AppData\Local\SumatraPDF"
 PRINTER_NAME = "ingeniero buena"
+WACOM_EXE_PATH = r"C:\Users\Jose A\Desktop\WacomSTU_Console\bin\Debug\WacomSTU_Console.exe"
+SIGNATURE_IMAGE = r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\signature\signature.png"
 Path(FOLDER_PATH).mkdir(exist_ok=True)
 
 
@@ -55,6 +58,8 @@ async def login(page):
 # =================================== HANDLE PRINT ====================================
 
 async def handle_request(context, request):
+
+    ui = UILibrary()
     url = request.url
 
     if "/ffs/logs/" in url and url.endswith("/print"):
@@ -84,9 +89,6 @@ async def handle_request(context, request):
 
         dlg.wait('visible', timeout=5)
 
-
-        exe_path = r"C:\Users\Jose A\Desktop\WacomSTU_Console\bin\Debug\WacomSTU_Console.exe"
-    
         # ----- Set filename -----
         filename = f"document_{int(time.time() * 1000)}.pdf"
         full_path = os.path.join(FOLDER_PATH, filename)
@@ -119,46 +121,53 @@ async def handle_request(context, request):
         # --------Insert signature in pdf ----------
         try:
             try:
-                # Lanza el exe 
-                process = subprocess.Popen([exe_path],
+                # Run wacom exe
+                process = subprocess.Popen([WACOM_EXE_PATH],
                                 stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE,
                                 text=True)
                 
 
-                # Hacer otras cosas mientras el exe corre...
+                # Runs in the background
                 print("WacomSTU Console running in background")
             except:
                 print("Error opening wacom tablet")
             
-            
+            ui.mostrar_mensaje("Please, sign on the tablet. Then click ok or cancel to continue.")
             status = wait_for_status(timeout=40)
-            signature_exists = wait_for_image(timeout = 40)
-
+            
             if status == "OK":
                 print(status)
+                signature_exists = wait_for_image(timeout = 40)
                 if signature_exists:
-                    insert_signature(full_path, r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\signature\signature.png", (339.35, 547.49, 360.19, 678.42))
+                    insert_signature(full_path, SIGNATURE_IMAGE, (339.35, 547.49, 360.19, 678.42))
+                    ui.cerrar_mensaje()
                     time.sleep(0.2)
                     clean_signature_folder()
                     
                     return
+                
+                else:
+                    print("Error: No signature found")
                     
             if status is None:
                 print("No message received (timeout)")  
                 #remove downloaded PDF
                 os.remove(full_path)
+                ui.cerrar_mensaje()
                 #clean signature folder
                 clean_signature_folder()
 
             if status == "CANCEL":
                 #remove downloaded PDF
                 os.remove(full_path)
+                ui.cerrar_mensaje()
                 #clean signature folder
                 clean_signature_folder()
 
         except:
             print("❌ Error inserting signature")
+            ui.cerrar_mensaje()
             clean_signature_folder()
 
 
