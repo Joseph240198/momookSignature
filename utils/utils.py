@@ -4,6 +4,10 @@ import time
 import asyncio
 import subprocess
 import threading
+import re
+import pytesseract
+from pdf2image import convert_from_path
+from PIL import Image, ImageEnhance, ImageFilter
 
 
 
@@ -181,3 +185,101 @@ def wait_for_status(file_path=r"C:\Users\Jose A\Desktop\momook_signature\Techlog
             return None
         time.sleep(0.1)  # evitar consumir CPU
 
+def generate_name_pdf(ruta_pdf):
+        """
+        Extrae Start y Finish de un PDF basado en imagen usando OCR.
+        """
+        texto_completo = ""
+
+        # Convertir PDF a imágenes
+        paginas = convert_from_path(ruta_pdf)
+        
+        for img in paginas:
+            # Rotar horizontal automáticamente si ancho > alto
+            if img.width > img.height:
+                img = img.rotate(90, expand=True)
+            texto = pytesseract.image_to_string(img)
+            texto_completo += texto + "\n"
+
+        texto_completo = re.sub(r'\s+', ' ', texto_completo)
+
+         #Buscar cualquier hora tipo 0830, 08:30, 08.30, 08;30
+        horas = re.findall(r"\b\d{1,2}[:.;]?\d{2}\b", texto_completo)
+
+        print("Horas detectadas:", horas)
+
+        hora_start = "SIN_START"
+        hora_finish = "SIN_FINISH"
+
+        if len(horas) >= 1:
+            hora_start = horas[0]
+
+        if len(horas) >= 2:
+            hora_finish = horas[1]
+
+        # Normalizar formato a HH-MM
+        hora_start = hora_start.replace(":", "-").replace(".", "-").replace(";", "-")
+        hora_finish = hora_finish.replace(":", "-").replace(".", "-").replace(";", "-")
+
+        
+        return f"Start_{hora_start}_Finish_{hora_finish}.pdf"
+
+
+def rename_pdf(ruta_pdf):
+    nuevo_nombre = generate_name_pdf(ruta_pdf)
+    directorio = os.path.dirname(ruta_pdf)
+    nueva_ruta = os.path.join(directorio, nuevo_nombre)
+
+    # Evitar sobreescribir
+    contador = 1
+    nombre_base, extension = os.path.splitext(nuevo_nombre)
+    while os.path.exists(nueva_ruta):
+        nueva_ruta = os.path.join(directorio, f"{nombre_base}_{contador}{extension}")
+        contador += 1
+
+    os.rename(ruta_pdf, nueva_ruta)
+    return nueva_ruta
+
+def mostrar_pdf_en_terminal(ruta_pdf, poppler_path=None):
+    paginas = convert_from_path(ruta_pdf, dpi=300, poppler_path=poppler_path)
+
+    # Indicar ruta de Tesseract si es necesario
+    pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+
+    for i, img in enumerate(paginas, start=1):
+        # Girar 90° a la derecha
+        img = img.rotate(-90, expand=True)
+
+        # OCR
+        texto = pytesseract.image_to_string(img)
+        print(f"\n--- Página {i} ---\n")
+        print(texto)
+        print("\n------------------\n")
+
+def ocr_preprocesado(ruta_pdf, poppler_path):
+    """
+    Convierte PDF a imágenes y muestra en terminal todo el texto detectado por OCR.
+    Incluye rotación 90° a la derecha y preprocesamiento de imagen.
+    """
+    # Configurar Tesseract
+    pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+
+    # Convertir PDF a imágenes de alta resolución
+    paginas = convert_from_path(ruta_pdf, dpi=400, poppler_path=poppler_path)
+
+    for i, img in enumerate(paginas, start=1):
+        # Girar 90° a la derecha
+        img = img.rotate(-90, expand=True)
+
+        # Preprocesamiento
+        img = img.convert("L")  # escala de grises
+        img = ImageEnhance.Contrast(img).enhance(2)  # mejorar contraste
+        img = img.point(lambda x: 0 if x < 140 else 255, '1')  # binarización
+        img = img.filter(ImageFilter.MedianFilter())  # reducir ruido
+
+        # OCR
+        texto = pytesseract.image_to_string(img)
+
+        print(f"\n--- Página {i} ---\n")
+        print(texto)
+        print("\n------------------\n")

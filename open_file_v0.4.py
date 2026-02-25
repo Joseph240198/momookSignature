@@ -7,7 +7,7 @@ import ctypes
 import os
 import win32print, win32api
 import subprocess
-from utils.utils import rotate_pdf, insert_signature, find_save_button, clean_signature_folder, wait_for_image, wait_for_status
+from utils.utils import rotate_pdf, insert_signature, find_save_button, clean_signature_folder, wait_for_image, wait_for_status, generate_name_pdf, rename_pdf, mostrar_pdf_en_terminal, ocr_preprocesado
 import threading
 from utils.ui_lib import UILibrary 
 
@@ -91,6 +91,7 @@ async def handle_request(context, request):
 
         # ----- Set filename -----
         filename = f"document_{int(time.time() * 1000)}.pdf"
+        
         full_path = os.path.join(FOLDER_PATH, filename)
 
         edit = dlg.child_window(class_name="Edit")
@@ -134,14 +135,17 @@ async def handle_request(context, request):
                 print("Error opening wacom tablet")
             
             ui.mostrar_mensaje("Please, sign on the tablet. Then click ok or cancel to continue.")
-            status = wait_for_status(timeout=40)
+            status = wait_for_status(timeout=30)
             
             if status == "OK":
                 print(status)
-                signature_exists = wait_for_image(timeout = 40)
+                signature_exists = wait_for_image(timeout = 30)
                 if signature_exists:
                     insert_signature(full_path, SIGNATURE_IMAGE, (339.35, 547.49, 360.19, 678.42))
                     ui.cerrar_mensaje()
+                    mostrar_pdf_en_terminal(full_path, r"C:\Users\Jose A\Desktop\poppler-25.12.0\Library\bin")
+                    ocr_preprocesado(full_path, r"C:\Users\Jose A\Desktop\poppler-25.12.0\Library\bin")
+                    rename_pdf(full_path)
                     time.sleep(0.2)
                     clean_signature_folder()
                     
@@ -155,6 +159,7 @@ async def handle_request(context, request):
                 #remove downloaded PDF
                 os.remove(full_path)
                 ui.cerrar_mensaje()
+                process.terminate()
                 #clean signature folder
                 clean_signature_folder()
 
@@ -170,6 +175,8 @@ async def handle_request(context, request):
             ui.cerrar_mensaje()
             clean_signature_folder()
 
+        # ============ Rename techlogs =================
+        
 
 # ======================================================================================       
 # =================================== MAIN =============================================
