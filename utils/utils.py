@@ -8,6 +8,10 @@ import re
 import pytesseract
 from pdf2image import convert_from_path
 from PIL import Image, ImageEnhance, ImageFilter
+import cv2
+import numpy as np
+import pdfplumber
+
 
 
 
@@ -283,3 +287,101 @@ def ocr_preprocesado(ruta_pdf, poppler_path):
         print(f"\n--- Página {i} ---\n")
         print(texto)
         print("\n------------------\n")
+
+def preprocess_image(pil_image):
+    """Mejora la imagen para que Tesseract lea mejor."""
+    img = np.array(pil_image)
+
+    # Escala de grises
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # Binarización
+    gray = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)[1]
+
+    # Suavizado
+    gray = cv2.medianBlur(gray, 3)
+
+    return gray
+
+
+
+def create_searchable_pdf(input_pdf_path, output_pdf_path, poppler_path):
+    """
+    Convierte un PDF en un PDF searchable (OCR) y lo guarda SIEMPRE en output_pdf_path.
+    """
+
+    # Asegurar ruta absoluta
+    input_pdf_path = os.path.abspath(input_pdf_path)
+    output_pdf_path = os.path.abspath(output_pdf_path)
+
+    # Configurar Tesseract
+    pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+
+    # Convertir PDF a imágenes
+    try:
+        pages = convert_from_path(input_pdf_path, dpi=300, poppler_path=poppler_path)
+    except Exception as e:
+        print("❌ Error convirtiendo PDF a imágenes:", e)
+        return False
+
+    pdf_bytes_total = b""
+
+    # Procesar cada página
+    for page in pages:
+        processed = preprocess_image(page)
+
+        try:
+            pdf_bytes = pytesseract.image_to_pdf_or_hocr(
+                processed,
+                extension='pdf',
+                lang='eng'
+            )
+        except Exception as e:
+            print("❌ Error en OCR:", e)
+            return False
+
+        pdf_bytes_total += pdf_bytes
+
+    # Guardar el PDF searchable
+    try:
+        with open(output_pdf_path, "wb") as f:
+            f.write(pdf_bytes_total)
+    except Exception as e:
+        print("❌ Error guardando el PDF searchable:", e)
+        return False
+
+    print("✅ PDF searchable creado en:", output_pdf_path)
+    print("📄 Existe el archivo:", os.path.exists(output_pdf_path))
+
+    return True
+
+
+
+def read_pdf_and_print(pdf_path):
+    """
+    Reads a searchable PDF and prints detected text to console.
+    """
+
+    extracted_text = ""
+
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            extracted_text += page.extract_text() or ""
+
+    print("\n----- EXTRACTED TEXT -----\n")
+    print(extracted_text)
+    print("\n--------------------------\n")
+
+def get_searchable_pdf_path(original_path):
+    """
+    Returns a new path adding '_searchable' before the file extension.
+    """
+
+    directory = os.path.dirname(original_path)
+    filename = os.path.basename(original_path)
+
+    name, extension = os.path.splitext(filename)
+
+    new_filename = f"{name}_searchable{extension}"
+
+    return os.path.join(directory, new_filename)

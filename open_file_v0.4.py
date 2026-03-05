@@ -7,7 +7,7 @@ import ctypes
 import os
 import win32print, win32api
 import subprocess
-from utils.utils import rotate_pdf, insert_signature, find_save_button, clean_signature_folder, wait_for_image, wait_for_status, generate_name_pdf, rename_pdf, mostrar_pdf_en_terminal, ocr_preprocesado
+from utils.utils import rotate_pdf, insert_signature, find_save_button, clean_signature_folder, wait_for_image, wait_for_status, generate_name_pdf, rename_pdf, mostrar_pdf_en_terminal, ocr_preprocesado, read_pdf_and_print, create_searchable_pdf, get_searchable_pdf_path
 import threading
 from utils.ui_lib import UILibrary 
 
@@ -20,6 +20,7 @@ SUMATRA = r"C:\Users\Jose A\AppData\Local\SumatraPDF"
 PRINTER_NAME = "ingeniero buena"
 WACOM_EXE_PATH = r"C:\Users\Jose A\Desktop\WacomSTU_Console\bin\Debug\WacomSTU_Console.exe"
 SIGNATURE_IMAGE = r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\signature\signature.png"
+POPLER_PATH = r"C:\Users\Jose A\Desktop\poppler-25.12.0\Library\bin"
 Path(FOLDER_PATH).mkdir(exist_ok=True)
 
 
@@ -143,9 +144,10 @@ async def handle_request(context, request):
                 if signature_exists:
                     insert_signature(full_path, SIGNATURE_IMAGE, (339.35, 547.49, 360.19, 678.42))
                     ui.cerrar_mensaje()
-                    mostrar_pdf_en_terminal(full_path, r"C:\Users\Jose A\Desktop\poppler-25.12.0\Library\bin")
-                    ocr_preprocesado(full_path, r"C:\Users\Jose A\Desktop\poppler-25.12.0\Library\bin")
-                    rename_pdf(full_path)
+                    pdf_non_searchable_path = rename_pdf(full_path)
+                    searchable_pdf_path = get_searchable_pdf_path(full_path)
+                    create_searchable_pdf(pdf_non_searchable_path, searchable_pdf_path, POPLER_PATH)
+                    read_pdf_and_print(searchable_pdf_path)
                     time.sleep(0.2)
                     clean_signature_folder()
                     
@@ -174,7 +176,7 @@ async def handle_request(context, request):
             print("❌ Error inserting signature")
             ui.cerrar_mensaje()
             clean_signature_folder()
-
+        
         # ============ Rename techlogs =================
         
 
