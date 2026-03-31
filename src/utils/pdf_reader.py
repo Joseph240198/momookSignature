@@ -8,7 +8,7 @@ import os
 
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 POPLER_PATH = r"C:\Users\Jose A\Desktop\momook_signature\utils\poppler-25.12.0\Library\bin"
-FILE_PATH = r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\document_1773234902979.pdf"
+FILE_PATH = r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\document_1773235104435.pdf"
 OUTPUT_IMAGE_PATH = r"C:\Users\Jose A\Desktop\momook_signature\image.png"
 
 # DATE ZONE
@@ -125,12 +125,20 @@ def extract_fields_from_crops(date_crop, start_crop, finish_crop, sim_crop):
     }
 
     
+def generate_techlog_name(file_path):
+    image = rotate_pdf_and_convert_to_image(file_path, OUTPUT_IMAGE_PATH, POPLER_PATH)
+    date_crop, start_crop, finish_crop, sim_crop = generate_crops(image)
+    result = extract_fields_from_crops(date_crop, start_crop, finish_crop, sim_crop)
+    sim    = result.get("sim", "")
+    date   = result.get("date", "")
+    start  = result.get("start", "")
+    finish = result.get("finish", "")
 
+    # Construir nombre final
+    techlog_name = f"{sim}_{date}_{start}_{finish}"
 
-image = rotate_pdf_and_convert_to_image(FILE_PATH, OUTPUT_IMAGE_PATH, POPLER_PATH)
-date_crop, start_crop, finish_crop, sim_crop = generate_crops(image)
-result = extract_fields_from_crops(date_crop, start_crop, finish_crop, sim_crop)
-print(result)
+    return techlog_name
+
 
 
 

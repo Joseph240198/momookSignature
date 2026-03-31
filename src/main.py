@@ -7,7 +7,7 @@ import ctypes
 import os
 import win32print, win32api
 import subprocess
-from utils.utils import rotate_pdf, insert_signature, find_save_button, clean_signature_folder, wait_for_image, wait_for_status, generate_name_pdf, rename_pdf, mostrar_pdf_en_terminal, ocr_preprocesado, read_pdf_and_print, create_searchable_pdf, get_searchable_pdf_path
+from utils.utils import rotate_pdf, insert_signature, find_save_button, clean_signature_folder, wait_for_image, wait_for_status
 import threading
 from utils.ui_lib import UILibrary 
 
@@ -144,10 +144,6 @@ async def handle_request(context, request):
                 if signature_exists:
                     insert_signature(full_path, SIGNATURE_IMAGE, (339.35, 547.49, 360.19, 678.42))
                     ui.cerrar_mensaje()
-                    pdf_non_searchable_path = rename_pdf(full_path)
-                    searchable_pdf_path = get_searchable_pdf_path(full_path)
-                    create_searchable_pdf(pdf_non_searchable_path, searchable_pdf_path, POPLER_PATH)
-                    read_pdf_and_print(searchable_pdf_path)
                     time.sleep(0.2)
                     clean_signature_folder()
                     

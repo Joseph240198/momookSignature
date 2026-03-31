@@ -189,6 +189,8 @@ def wait_for_status(file_path=r"C:\Users\Jose A\Desktop\momook_signature\Techlog
             return None
         time.sleep(0.1)  # evitar consumir CPU
 
+
+'''
 def generate_name_pdf(ruta_pdf):
         """
         Extrae Start y Finish de un PDF basado en imagen usando OCR.
@@ -385,3 +387,5 @@ def get_searchable_pdf_path(original_path):
     new_filename = f"{name}_searchable{extension}"
 
     return os.path.join(directory, new_filename)
+    
+    '''
