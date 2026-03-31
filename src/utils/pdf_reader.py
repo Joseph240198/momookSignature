@@ -7,9 +7,9 @@ import os
 
 
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-POPLER_PATH = r"C:\Users\Jose A\Desktop\momook_signature\utils\poppler-25.12.0\Library\bin"
-FILE_PATH = r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\document_1773235104435.pdf"
-OUTPUT_IMAGE_PATH = r"C:\Users\Jose A\Desktop\momook_signature\image.png"
+POPLER_PATH = r"C:\Users\Jose A\Desktop\momook_signature\src\utils\poppler-25.12.0\Library\bin"
+FILE_PATH = r"C:\Users\Jose A\Desktop\momook_signature\data\Techlogs\document_1773235104435.pdf"
+OUTPUT_IMAGE_PATH = r"C:\Users\Jose A\Desktop\momook_signature\data\images\debug_images\image.png"
 
 # DATE ZONE
 x1_date, y1_date = 1735, 1565

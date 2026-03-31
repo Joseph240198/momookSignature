@@ -15,11 +15,11 @@ from utils.ui_lib import UILibrary
 USERNAME = "j.soler@baatraining.com"
 PASSWORD = "2401199883cCc"
 EDGE_PATH = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
-FOLDER_PATH = r"C:\Users\Jose A\Desktop\momook_signature\Techlogs"
+FOLDER_PATH = r"C:\Users\Jose A\Desktop\momook_signature\data\Techlogs"
 SUMATRA = r"C:\Users\Jose A\AppData\Local\SumatraPDF"
 PRINTER_NAME = "ingeniero buena"
 WACOM_EXE_PATH = r"C:\Users\Jose A\Desktop\WacomSTU_Console\bin\Debug\WacomSTU_Console.exe"
-SIGNATURE_IMAGE = r"C:\Users\Jose A\Desktop\momook_signature\Techlogs\signature\signature.png"
+SIGNATURE_IMAGE = r"C:\Users\Jose A\Desktop\momook_signature\data\Techlogs\signature\signature.png"
 POPLER_PATH = r"C:\Users\Jose A\Desktop\poppler-25.12.0\Library\bin"
 Path(FOLDER_PATH).mkdir(exist_ok=True)
 
