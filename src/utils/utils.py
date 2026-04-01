@@ -69,16 +69,13 @@ def rotate_pdf(pdf_path, output_path, degrees=90):
     print(f"✔ Rotated PDF saved in: {output_path}")
 
 #==================================== INSERT SIGNATURE ================================
-def insert_signature(pdf_path, signature_path, coords):
-    """
-    Insert image signature inside the pdf
-    
-    pdf_path: string path to pdf
-    signature_path: path to the signature, image file
-    coords: coordinates where signature is to be inserted in pdf
-    """
-    printer_name = "ingeniero buena"
-   
+def insert_signature(pdf_path, signature_path, coords, techlog_name):
+    import time
+    import fitz
+    import os
+
+    # ---- sanitize filename ----
+    safe_name = techlog_name.replace(":", "-")
 
     # ---- wait until pdf exists ----
     timeout = 10
@@ -92,42 +89,47 @@ def insert_signature(pdf_path, signature_path, coords):
         time.sleep(0.3)
     else:
         print("❌ ERROR: El PDF no apareció a tiempo, no se puede firmar.")
-        return
-     # --- 1. Creat automatic name ---
-    base, ext = os.path.splitext(pdf_path)
-    new_path = f"{base}_signed{ext}"
+        return None
 
-    # if it exists, use incremental one
+    # --- build final path ---
+    folder = os.path.dirname(pdf_path)
+    new_path = os.path.join(folder, f"{safe_name}.pdf")
+
     counter = 1
     while os.path.exists(new_path):
-        new_path = f"{base}_signed_{counter}{ext}"
+        new_path = os.path.join(folder, f"{safe_name}_{counter}.pdf")
         counter += 1
-    
 
+    # --- ensure original PDF is not locked ---
+    try:
+        tmp = fitz.open(pdf_path)
+        tmp.close()
+        time.sleep(0.2)
+    except:
+        print("⚠ El PDF está bloqueado por otro proceso.")
+        return None
+
+    # --- insert signature ---
     try:
         x, y, n, m = coords
         doc = fitz.open(pdf_path)
         page = doc[-1]
         rect = fitz.Rect(x, y, n, m)
         page.insert_image(rect, filename=signature_path, rotate=90)
-    except:
-        print("Error inserting the image")
+    except Exception as e:
+        print("❌ Error inserting the image:", e)
+        return None
 
+    # --- save with safe options ---
     try:
-        doc.save(new_path)
+        doc.save(new_path, garbage=4, deflate=True)
         doc.close()
-        print(f"✔ PDF signed and saved in: {new_path}")
-    except:
-        print("Error saving the signed pdf")
+        print(f"✔ PDF firmado guardado como: {new_path}")
+        return new_path
+    except Exception as e:
+        print("❌ Error saving the signed PDF:", e)
+        return None
 
-    
-"""
-    try:
-        print_pdf(pdf_path, PRINTER_NAME)
-        print(f"PDF printed in {PRINTER_NAME}")
-    except:
-        print("PDF not printed")
-"""
 
 # ================Clean signature folder===============================
 

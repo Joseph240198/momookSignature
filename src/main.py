@@ -10,6 +10,7 @@ import subprocess
 from utils.utils import rotate_pdf, insert_signature, find_save_button, clean_signature_folder, wait_for_image, wait_for_status
 import threading
 from utils.ui_lib import UILibrary 
+from utils.pdf_reader import generate_techlog_name
 
 #PRUEBA git 2
 USERNAME = "j.soler@baatraining.com"
@@ -142,7 +143,8 @@ async def handle_request(context, request):
                 print(status)
                 signature_exists = wait_for_image(timeout = 30)
                 if signature_exists:
-                    insert_signature(full_path, SIGNATURE_IMAGE, (339.35, 547.49, 360.19, 678.42))
+                    techlog_name = generate_techlog_name(full_path)
+                    insert_signature(full_path, SIGNATURE_IMAGE, (339.35, 547.49, 360.19, 678.42), techlog_name)
                     ui.cerrar_mensaje()
                     time.sleep(0.2)
                     clean_signature_folder()
