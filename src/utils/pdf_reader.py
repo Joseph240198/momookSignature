@@ -4,12 +4,13 @@ import re
 import cv2
 import numpy as np
 import os
+import shutil
 
 
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 POPLER_PATH = r"C:\Users\Jose A\Desktop\momook_signature\src\utils\poppler-25.12.0\Library\bin"
-#FILE_PATH = r"C:\Users\Jose A\Desktop\momook_signature\data\Techlogs\document_1773235104435.pdf"
 OUTPUT_IMAGE_PATH = r"C:\Users\Jose A\Desktop\momook_signature\data\images\debug_images\image.png"
+VALID_SIMS = {"17", "18", "19", "20", "21", "29"}
 
 # DATE ZONE
 x1_date, y1_date = 1735, 1565
@@ -93,36 +94,42 @@ def save_crop(img, name, folder="crops"):
     return path
 
 def extract_fields_from_crops(date_crop, start_crop, finish_crop, sim_crop):
-    # Preprocesado
+    # --- Preprocess ---
     date_img   = preprocess(date_crop)
     start_img  = preprocess(start_crop)
     finish_img = preprocess(finish_crop)
-    sim_img = preprocess(sim_crop)
+    sim_img    = preprocess(sim_crop)
 
-    # OCR
+    # --- OCR ---
     date_text   = ocr_text(date_img)
     start_text  = ocr_text(start_img)
     finish_text = ocr_text(finish_img)
-    sim_text = ocr_text(sim_img)
+    sim_text    = ocr_text(sim_img)
 
-    # Extracción
+    # --- Normal extraction ---
     date_match   = re.search(r"\d{4}-\d{2}-\d{2}", date_text)
     start_match  = re.search(r"\d{1,2}:\d{2}", start_text)
     finish_match = re.search(r"\d{1,2}:\d{2}", finish_text)
-    sim_match = re.search(r"[A-Za-z0-9.]+", sim_text)
+
+    # --- extract only the last two digits---
+    sim_candidates = re.findall(r"(\d{2})", sim_text)
+    sim = sim_candidates[-1] if sim_candidates else None
+    if sim not in VALID_SIMS:
+        sim = "unknown"
 
     return {
         "date": date_match.group(0) if date_match else None,
         "start": start_match.group(0) if start_match else None,
         "finish": finish_match.group(0) if finish_match else None,
-        "sim": sim_match.group(0) if sim_match else None,
+        "sim": sim,
 
-        # Raw text para depuración
+        # for debugging
         "raw_date": date_text,
         "raw_start": start_text,
         "raw_finish": finish_text,
         "raw_sim": sim_text
     }
+
 
     
 def generate_techlog_name(file_path):
@@ -133,15 +140,68 @@ def generate_techlog_name(file_path):
     date   = result.get("date", "")
     start  = result.get("start", "")
     finish = result.get("finish", "")
-
+    
+    # print(result.get("raw_sim", ""))
+    # print(result.get("sim", ""))
+    
     # Construir nombre final
     techlog_name = f"{sim}_{date}_{start}_{finish}"
 
     return techlog_name
 
 
+def sort_techlog(pdf_path):
+    try:
+        """
+        Receives the full path of a techlog PDF and moves it into the correct
+        simulator folder inside the fixed output directory.
 
+        The PDF filename must follow this format:
+            sim_date_start_finish.pdf
+        Example:
+            17_2026-04-06_13-45_17-45.pdf
+        """
 
+        # --- Extract filename ---
+        filename = os.path.basename(pdf_path)
+
+        # --- Extract simulator number (first two digits before the first "_") ---
+        sim_match = re.match(r"(\d{2})_", filename)
+        if not sim_match:
+            print("❌ Could not extract simulator number from filename.")
+            return None
+
+        sim = sim_match.group(1)
+
+        # --- Fixed output directory ---
+        output_root = r"C:\Users\Jose A\Desktop\momook_signature\output"
+
+        # --- Destination folder (already exists) ---
+        sim_folder = os.path.join(output_root, sim)
+
+        # --- Final destination path ---
+        final_path = os.path.join(sim_folder, filename)
+
+        # --- Avoid overwriting existing files ---
+        counter = 1
+        while os.path.exists(final_path):
+            name, ext = os.path.splitext(filename)
+            final_path = os.path.join(sim_folder, f"{name}_{counter}{ext}")
+            counter += 1
+
+        # --- Move the file ---
+        shutil.move(pdf_path, final_path)
+
+        print(f"✔ Techlog moved to: {final_path}")
+        return final_path
+
+    except:
+        print("Error sorting techlog")
+    
+#ONLY FOR DEBUGGING
+
+# FILE_PATH = r"C:\Users\Jose A\Desktop\momook_signature\data\Techlogs\document_1774992949632.pdf"
+# generate_techlog_name(FILE_PATH)
 
 
 

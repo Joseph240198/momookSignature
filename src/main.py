@@ -10,13 +10,13 @@ import subprocess
 from utils.utils import rotate_pdf, insert_signature, find_save_button, clean_signature_folder, wait_for_image, wait_for_status
 import threading
 from utils.ui_lib import UILibrary 
-from utils.pdf_reader import generate_techlog_name
+from utils.pdf_reader import generate_techlog_name, sort_techlog
 
 #PRUEBA git 2
 USERNAME = "j.soler@baatraining.com"
 PASSWORD = "2401199883cCc"
 EDGE_PATH = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
-FOLDER_PATH = r"C:\Users\Jose A\Desktop\momook_signature\data\Techlogs"
+FOLDER_PATH = r"C:\Users\Jose A\Desktop\momook_signature\data\Techlogs\downloads"
 SUMATRA = r"C:\Users\Jose A\AppData\Local\SumatraPDF"
 PRINTER_NAME = "ingeniero buena"
 WACOM_EXE_PATH = r"C:\Users\Jose A\Desktop\WacomSTU_Console\bin\Debug\WacomSTU_Console.exe"
@@ -148,6 +148,7 @@ async def handle_request(context, request):
                     ui.cerrar_mensaje()
                     time.sleep(0.2)
                     clean_signature_folder()
+                    sort_techlog(full_path)
                     
                     return
                 
