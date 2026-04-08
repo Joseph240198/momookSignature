@@ -1,52 +1,52 @@
 import fitz 
 import os
 import time
-import asyncio
-import subprocess
-import threading
-import re
-import pytesseract
+import traceback
 from pdf2image import convert_from_path
-from PIL import Image, ImageEnhance, ImageFilter
-import cv2
 import numpy as np
-import pdfplumber
+
 
 
 
 
 def find_save_button(dlg):
     # 1. Buscar por nombre exacto (Windows inglés)
-    for name in ["Save", "&Save", "Guardar", "&Guardar"]:
+    try:
+        for name in ["Save", "&Save", "Guardar", "&Guardar"]:
+            try:
+                btn = dlg.child_window(title=name, control_type="Button")
+                return btn.wrapper_object()
+            except:
+                pass
+
+        # 2. Buscar por regex
         try:
-            btn = dlg.child_window(title=name, control_type="Button")
+            btn = dlg.child_window(title_re=".*Save.*", control_type="Button")
             return btn.wrapper_object()
         except:
             pass
 
-    # 2. Buscar por regex
-    try:
-        btn = dlg.child_window(title_re=".*Save.*", control_type="Button")
-        return btn.wrapper_object()
-    except:
-        pass
+        # 3. Buscar cualquier botón visible en el diálogo
+        buttons = dlg.descendants(control_type="Button")
+        if buttons:
+            return buttons[0]  # normalmente el primero es Save
 
-    # 3. Buscar cualquier botón visible en el diálogo
-    buttons = dlg.descendants(control_type="Button")
-    if buttons:
-        return buttons[0]  # normalmente el primero es Save
+        # 4. Buscar dentro de DirectUIHWND (diálogos modernos)
+        duis = dlg.descendants(class_name="DirectUIHWND")
+        for ui in duis:
+            try:
+                btns = ui.descendants(control_type="Button")
+                if btns:
+                    return btns[0]
+            except:
+                pass
 
-    # 4. Buscar dentro de DirectUIHWND (diálogos modernos)
-    duis = dlg.descendants(class_name="DirectUIHWND")
-    for ui in duis:
-        try:
-            btns = ui.descendants(control_type="Button")
-            if btns:
-                return btns[0]
-        except:
-            pass
+        return None
+    
+    except Exception as e:
+        traceback.print_exc()
+        return None
 
-    return None
 
 def rotate_pdf(pdf_path, output_path, degrees=90):
     """
@@ -56,24 +56,27 @@ def rotate_pdf(pdf_path, output_path, degrees=90):
     output_path: Path for rotated pdf
     degrees: 90, 180, 270
     """
-    doc = fitz.open(pdf_path)
-    
-    for page in doc:
-        page.set_rotation(degrees)  # rota la página
-    
-    # Guardar de forma segura
-    temp_path = pdf_path + ".tmp"
-    doc.save(temp_path)
-    doc.close()
-    os.replace(temp_path, output_path)
-    print(f"✔ Rotated PDF saved in: {output_path}")
+    try:
+        doc = fitz.open(pdf_path)
+        
+        for page in doc:
+            page.set_rotation(degrees)  # rotate the page
+        
+        # Guardar de forma segura
+        temp_path = pdf_path + ".tmp"
+        doc.save(temp_path)
+        doc.close()
+        os.replace(temp_path, output_path)
+        print(f"✔ Rotated PDF saved in: {output_path}")
+    except Exception as e:
+        traceback.print_exc()
 
 #==================================== INSERT SIGNATURE ================================
 def insert_signature(pdf_path, signature_path, coords, techlog_name):
     import time
     import fitz
     import os
-
+    
     # ---- sanitize filename ----
     safe_name = techlog_name.replace(":", "-")
 
@@ -107,6 +110,7 @@ def insert_signature(pdf_path, signature_path, coords, techlog_name):
         time.sleep(0.2)
     except:
         print("⚠ El PDF está bloqueado por otro proceso.")
+        traceback.print_exc()
         return None
 
     # --- insert signature ---
@@ -118,6 +122,7 @@ def insert_signature(pdf_path, signature_path, coords, techlog_name):
         page.insert_image(rect, filename=signature_path, rotate=90)
     except Exception as e:
         print("❌ Error inserting the image:", e)
+        traceback.print_exc()
         return None
 
     # --- save with safe options ---
@@ -128,6 +133,7 @@ def insert_signature(pdf_path, signature_path, coords, techlog_name):
         return new_path
     except Exception as e:
         print("❌ Error saving the signed PDF:", e)
+        traceback.print_exc()
         return None
 
 
@@ -143,52 +149,59 @@ def clean_signature_folder():
 
         if os.path.exists(status_path):
             os.remove(status_path)   
-    except:
-
+    except Exception as e:
         print("Error removing files in signature folder")
-    
+        traceback.print_exc()
+  
 # ===================== Wait for signature image ========================================
 def wait_for_image(file_path = r"C:\Users\Jose A\Desktop\momook_signature\data\Techlogs\signature\signature.png", timeout=10):
     """
-    Espera hasta que exista el archivo de imagen.
+    Waits until image file exist.
 
-    :param file_path: Ruta del archivo a comprobar
-    :param timeout: Tiempo máximo de espera en segundos
-    :return: 1 si el archivo aparece, 0 si se alcanza el timeout
+    :param file_path: path ofh the file to check
+    :param timeout: timeout in seconds
+    :return: 1 if file exist, 0 if timeout reached
     """
-    start_time = time.time()
+    try:
+        start_time = time.time()
 
-    while True:
-        if os.path.exists(file_path):
-            return 1
+        while True:
+            if os.path.exists(file_path):
+                return 1
 
-        if time.time() - start_time > timeout:
-            return 0
+            if time.time() - start_time > timeout:
+                return 0
 
-        time.sleep(0.05)  # pequeña pausa para no saturar CPU
+            time.sleep(0.05)  # pequeña pausa para no saturar CPU
+
+    except Exception as e:
+        traceback.print_exc()
 
 
 # =============================== Wait for status txt to be available ===========================
 
 def wait_for_status(file_path=r"C:\Users\Jose A\Desktop\momook_signature\data\Techlogs\signature\WacomStatus.txt", timeout=10):
 
-
     """
-    Espera hasta que el archivo `status.txt` exista y tenga contenido.
-    Devuelve la primera línea como string.
-    Si se alcanza el timeout (segundos), devuelve None.
+    Waits until 'status.txt' exists and has content.
+    Returns first line as string
+    If timeout reached returns None
     """
-    start_time = time.time()
-    
-    while True:
-        if os.path.exists(file_path):
-            with open(file_path, "r") as f:
-                line = f.readline().strip()
-                if line:  # Si hay algo escrito
-                    return line
-        # Timeout
-        if time.time() - start_time > timeout:
-            return None
-        time.sleep(0.1)  # evitar consumir CPU
+    try:
+        start_time = time.time()
+        
+        while True:
+            if os.path.exists(file_path):
+                with open(file_path, "r") as f:
+                    line = f.readline().strip()
+                    if line:  # Si hay algo escrito
+                        return line
+            # Timeout
+            if time.time() - start_time > timeout:
+                return None
+            time.sleep(0.1)  # evitar consumir CPU
+            
+    except Exception as e:
+        traceback.print_exc()
 
 

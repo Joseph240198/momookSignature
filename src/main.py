@@ -8,7 +8,7 @@ import os
 import win32print, win32api
 import subprocess
 from utils.utils import rotate_pdf, insert_signature, find_save_button, clean_signature_folder, wait_for_image, wait_for_status
-import threading
+import traceback
 from utils.ui_lib import UILibrary 
 from utils.pdf_reader import generate_techlog_name, sort_techlog
 
@@ -163,7 +163,6 @@ async def handle_request(context, request):
                 #clean signature folder
                 clean_signature_folder()
                 
-
             if status == "CANCEL":
                 #remove downloaded PDF
                 os.remove(full_path)
@@ -171,12 +170,14 @@ async def handle_request(context, request):
                 #clean signature folder
                 clean_signature_folder()
 
-        except:
+        except Exception as e:
             print("❌ Error inserting signature")
+            print(type(e).__name__, e)
+            traceback.print_exc()
             ui.cerrar_mensaje()
             clean_signature_folder()
         
-        # ============ Rename techlogs =================
+       
         
 
 # ======================================================================================       

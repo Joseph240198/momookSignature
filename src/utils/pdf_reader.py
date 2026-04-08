@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 import os
 import shutil
+import traceback
 
 
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
@@ -67,25 +68,29 @@ def rotate_pdf_and_convert_to_image(pdf_path, output_image_path, poppler_path):
     Rota un PDF de una sola página -90 grados y lo convierte a imagen PNG.
     Guarda la imagen en output_image_path.
     """
+    try:
+        # Convertir PDF a imagen (solo 1 página)
+        pages = convert_from_path(pdf_path, dpi=400, poppler_path=poppler_path)
 
-    # Convertir PDF a imagen (solo 1 página)
-    pages = convert_from_path(pdf_path, dpi=400, poppler_path=poppler_path)
+        if len(pages) == 0:
+            print("❌ Can not convert PDF to image.")
+            return None
 
-    if len(pages) == 0:
-        print("❌ Can not convert PDF to image.")
-        return None
+        # Primera (y única) página
+        img = pages[0]
 
-    # Primera (y única) página
-    img = pages[0]
+        # Rotar -90 grados
+        rotated = img.rotate(-90, expand=True)
 
-    # Rotar -90 grados
-    rotated = img.rotate(-90, expand=True)
+        # Guardar imagen
+        rotated.save(output_image_path, "PNG")
 
-    # Guardar imagen
-    rotated.save(output_image_path, "PNG")
+        print("✅ Imagen generada en:", output_image_path)
+        return rotated
+    
+    except Exception as e:
+        traceback.print_exc()
 
-    print("✅ Imagen generada en:", output_image_path)
-    return rotated
 
 def generate_crops(rotated_image):
    
