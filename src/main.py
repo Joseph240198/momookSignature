@@ -144,12 +144,11 @@ async def handle_request(context, request):
                 signature_exists = wait_for_image(timeout = 30)
                 if signature_exists:
                     techlog_name = generate_techlog_name(full_path)
-                    insert_signature(full_path, SIGNATURE_IMAGE, (339.35, 547.49, 360.19, 678.42), techlog_name)
+                    new_path = insert_signature(full_path, SIGNATURE_IMAGE, (339.35, 547.49, 360.19, 678.42), techlog_name)
                     ui.cerrar_mensaje()
                     time.sleep(0.2)
                     clean_signature_folder()
-                    sort_techlog(full_path)
-                    
+                    sort_techlog(new_path)
                     return
                 
                 else:
@@ -163,6 +162,7 @@ async def handle_request(context, request):
                 process.terminate()
                 #clean signature folder
                 clean_signature_folder()
+                
 
             if status == "CANCEL":
                 #remove downloaded PDF

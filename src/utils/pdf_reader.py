@@ -11,6 +11,40 @@ pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tessera
 POPLER_PATH = r"C:\Users\Jose A\Desktop\momook_signature\src\utils\poppler-25.12.0\Library\bin"
 OUTPUT_IMAGE_PATH = r"C:\Users\Jose A\Desktop\momook_signature\data\images\debug_images\image.png"
 VALID_SIMS = {"17", "18", "19", "20", "21", "29"}
+OUTPUT_ROOT = r"C:\Users\Jose A\Desktop\momook_signature\output"
+
+def handle_sim17(pdf_path):
+    return move_to_sim_folder(pdf_path, "17")
+
+def handle_sim18(pdf_path):
+    return move_to_sim_folder(pdf_path, "18")
+
+def handle_sim19(pdf_path):
+    return move_to_sim_folder(pdf_path, "19")
+
+def handle_sim20(pdf_path):
+    return move_to_sim_folder(pdf_path, "20")
+
+def handle_sim21(pdf_path):
+    return move_to_sim_folder(pdf_path, "21")
+
+def handle_sim29(pdf_path):
+    return move_to_sim_folder(pdf_path, "29")
+
+def handle_unknown(pdf_path):
+    return move_to_sim_folder(pdf_path, "unknown")
+
+
+SIM_DISPATCH = {
+    "17": handle_sim17,
+    "18": handle_sim18,
+    "19": handle_sim19,
+    "20": handle_sim20,
+    "21": handle_sim21,
+    "29": handle_sim29,
+    "unknown": handle_unknown,
+}
+
 
 # DATE ZONE
 x1_date, y1_date = 1735, 1565
@@ -149,54 +183,40 @@ def generate_techlog_name(file_path):
 
     return techlog_name
 
+def move_to_sim_folder(pdf_path, sim):
+    filename = os.path.basename(pdf_path)
+    sim_folder = os.path.join(OUTPUT_ROOT, sim)
+    final_path = os.path.join(sim_folder, filename)
+
+    # Avoid overwriting
+    counter = 1
+    while os.path.exists(final_path):
+        name, ext = os.path.splitext(filename)
+        final_path = os.path.join(sim_folder, f"{name}_{counter}{ext}")
+        counter += 1
+
+    shutil.move(pdf_path, final_path)
+    print(f"✔ Techlog moved to: {final_path}")
+    return final_path
+
 
 def sort_techlog(pdf_path):
-    try:
-        """
-        Receives the full path of a techlog PDF and moves it into the correct
-        simulator folder inside the fixed output directory.
+    #Extract only the name of the techlog from the whole path
+    filename = os.path.basename(pdf_path)
 
-        The PDF filename must follow this format:
-            sim_date_start_finish.pdf
-        Example:
-            17_2026-04-06_13-45_17-45.pdf
-        """
+    # Extract first two digits (SIM number)
+    sim_match = re.match(r"(\d{2})_", filename)
 
-        # --- Extract filename ---
-        filename = os.path.basename(pdf_path)
+    if not sim_match:
+        print("❌ Could not extract simulator number from filename.")
+        return None
 
-        # --- Extract simulator number (first two digits before the first "_") ---
-        sim_match = re.match(r"(\d{2})_", filename)
-        if not sim_match:
-            print("❌ Could not extract simulator number from filename.")
-            return None
+    sim = sim_match.group(1)
 
-        sim = sim_match.group(1)
+    # Dispatch to the correct handler
+    handler = SIM_DISPATCH.get(sim, handle_unknown)
+    return handler(pdf_path)
 
-        # --- Fixed output directory ---
-        output_root = r"C:\Users\Jose A\Desktop\momook_signature\output"
-
-        # --- Destination folder (already exists) ---
-        sim_folder = os.path.join(output_root, sim)
-
-        # --- Final destination path ---
-        final_path = os.path.join(sim_folder, filename)
-
-        # --- Avoid overwriting existing files ---
-        counter = 1
-        while os.path.exists(final_path):
-            name, ext = os.path.splitext(filename)
-            final_path = os.path.join(sim_folder, f"{name}_{counter}{ext}")
-            counter += 1
-
-        # --- Move the file ---
-        shutil.move(pdf_path, final_path)
-
-        print(f"✔ Techlog moved to: {final_path}")
-        return final_path
-
-    except:
-        print("Error sorting techlog")
     
 #ONLY FOR DEBUGGING
 
