@@ -1,0 +1,7 @@
+C:\Users\Jose A\Desktop\WacomSTU_Console\bin\Debug\WacomSTU_Console.exe.config
+C:\Users\Jose A\Desktop\WacomSTU_Console\bin\Debug\WacomSTU_Console.exe
+C:\Users\Jose A\Desktop\WacomSTU_Console\bin\Debug\WacomSTU_Console.pdb
+C:\Users\Jose A\Desktop\WacomSTU_Console\obj\Debug\WacomSTU_Console.csproj.AssemblyReference.cache
+C:\Users\Jose A\Desktop\WacomSTU_Console\obj\Debug\WacomSTU_Console.csproj.CoreCompileInputs.cache
+C:\Users\Jose A\Desktop\WacomSTU_Console\obj\Debug\WacomSTU_Console.exe
+C:\Users\Jose A\Desktop\WacomSTU_Console\obj\Debug\WacomSTU_Console.pdb

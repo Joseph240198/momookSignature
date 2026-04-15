@@ -53,20 +53,29 @@ class UILibrary:
 
     def _mostrar_mensaje_ui(self, texto):
         win = tk.Toplevel(self.root)
-        win.geometry("400x150")
-        win.overrideredirect(True)  # Quita barra y botón cerrar
 
-        # Centrar ventana
-        win.update_idletasks()
         width = 400
         height = 150
+
+        # Primero definimos tamaño
+        win.geometry(f"{width}x{height}")
+
+        # Necesario para que Tk calcule medidas reales
+        win.update_idletasks()
+
+        # Obtener tamaño de pantalla
         screen_width = win.winfo_screenwidth()
         screen_height = win.winfo_screenheight()
 
+        # Calcular centro
         x = (screen_width // 2) - (width // 2)
         y = (screen_height // 2) - (height // 2)
 
+        # Aplicar posición final
         win.geometry(f"{width}x{height}+{x}+{y}")
+
+        # Ahora sí: quitar bordes
+        win.overrideredirect(True)
 
         # Siempre delante
         win.attributes("-topmost", True)
@@ -81,12 +90,12 @@ class UILibrary:
         tk.Label(
             frame,
             text=texto,
-            font=("Arial", 12),
+            font=("Arial", 14, "bold"),
             wraplength=350
         ).pack(expand=True)
 
-        # Guardamos referencia si quieres cerrarla luego
         self._current_window = win
+
 
     def _mostrar_confirmacion_ui(self, texto):
         win = tk.Toplevel(self.root)

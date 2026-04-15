@@ -1,0 +1,31 @@
+{
+  "base_dirs": {
+    "project": "C:/Users/Jose A/Desktop/momook_signature",
+    "user_dir": "C:/Users",
+    "c_dir": "C/"
+  },
+  
+  "techlog": {
+    "input_pdf": "data/Techlogs/downloads",
+    "output_pdf": "output",
+    "signature_image": "data/Techlogs/signature/signature.png",
+    "status_file": "data/Techlogs/signature/WacomStatus.txt"
+  },
+
+  "wacom": {
+    "signature_image": "data/Techlogs/signature/signature.png",
+    "status_file": "data/Techlogs/signature/WacomStatus.txt",
+    "exe_path": "src/utils/WacomSTU_Console/bin/Debug/WacomSTU_Console.exe"
+  },
+
+  "temp": {
+    "downloads": "temp/downloads",
+    "processing": "temp/processing"
+  },
+
+  "software":{
+      "edge_exe":"Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
+      "popler": "Jose A/Desktop/poppler-25.12.0/Library/bin"
+  }
+}
+

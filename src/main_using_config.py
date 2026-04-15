@@ -1,27 +1,15 @@
-from playwright.async_api import async_playwright, TimeoutError
-import asyncio
+from playwright.async_api import async_playwright
 from pathlib import Path
-import time
-from pywinauto import Application, Desktop, findwindows
-import ctypes
-import os
-import win32print, win32api
-import subprocess
+from pywinauto import Application, findwindows
+import os, json, traceback, subprocess, time, asyncio
 from utils.utils import rotate_pdf, insert_signature, find_save_button, clean_signature_folder, wait_for_image, wait_for_status
-import traceback
 from utils.ui_lib import UILibrary 
 from utils.pdf_reader import generate_techlog_name, sort_techlog
 
 #PRUEBA git 2
 USERNAME = "j.soler@baatraining.com"
 PASSWORD = "2401199883cCc"
-EDGE_PATH = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
-FOLDER_PATH = r"C:\Users\Jose A\Desktop\momook_signature\data\Techlogs\downloads"
-SUMATRA = r"C:\Users\Jose A\AppData\Local\SumatraPDF"
-PRINTER_NAME = "ingeniero buena"
-WACOM_EXE_PATH = r"C:\Users\Jose A\Desktop\WacomSTU_Console\bin\Debug\WacomSTU_Console.exe"
-SIGNATURE_IMAGE = r"C:\Users\Jose A\Desktop\momook_signature\data\Techlogs\signature\signature.png"
-POPLER_PATH = r"C:\Users\Jose A\Desktop\poppler-25.12.0\Library\bin"
+
 Path(FOLDER_PATH).mkdir(exist_ok=True)
 
 
@@ -184,6 +172,10 @@ async def handle_request(context, request):
 # =================================== MAIN =============================================
 async def main():
     clean_signature_folder()
+    paths = utils.utils.load_paths()
+    FOLDER_PATH = paths["FOLDER_PATH"]
+
+    Path(FOLDER_PATH).mkdir(exist_ok=True)
     main_page, context, browser, playwright = await create_instance()
     print("🌐 Browser launched")
 

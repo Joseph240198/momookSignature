@@ -3,7 +3,7 @@ import os
 import time
 import traceback
 from pdf2image import convert_from_path
-import numpy as np
+import json
 
 
 
@@ -205,3 +205,20 @@ def wait_for_status(file_path=r"C:\Users\Jose A\Desktop\momook_signature\data\Te
         traceback.print_exc()
 
 
+def load_paths():
+
+    with open("config/paths.json") as f:
+        paths = json.load(f)
+
+    base_project = paths["base_dirs"]["projects"]
+    user_dir = paths["base_dir"]["user_dir"]
+    c_dir = paths["base_dir"]["c_dir"]
+
+    return {
+        "EDGE_PATH" : os.path.join(c_dir, paths["software"]["edge_exe"]),
+        "FOLDER_PATH" : os.path.join(base_project, paths["techlog"]["input_pdf"]),
+        "SUMATRA" : r"C:\Users\Jose A\AppData\Local\SumatraPDF",
+        "WACOM_EXE_PATH" : os.path.join(base_project, paths["wacom"]["exe_path"]),
+        "SIGNATURE_IMAGE" : os.path.join(base_project, paths["techlog"]["signature_image"]),
+        "POPLER_PATH" : os.path.join(user_dir, paths["software"]["popler"])
+    }
