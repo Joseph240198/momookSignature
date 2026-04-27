@@ -47,6 +47,10 @@ class UILibrary:
     def cerrar_mensaje(self):
         if hasattr(self, "_current_window"):
             self._current_window.after(0, self._current_window.destroy)
+
+    def mostrar_mensaje_con_x(self, texto):
+        self._commands.put((self._mostrar_mensaje_con_x_ui, (texto,)))
+
     # --------------------------
     # FUNCIONES INTERNAS UI
     # --------------------------
@@ -114,3 +118,63 @@ class UILibrary:
 
         tk.Button(win, text="Aceptar", command=aceptar).pack(side="left", padx=30, pady=10)
         tk.Button(win, text="Cancelar", command=cancelar).pack(side="right", padx=30, pady=10)
+
+    def _mostrar_mensaje_con_x_ui(self, texto):
+        win = tk.Toplevel(self.root)
+
+        width = 400
+        height = 150
+
+        # Tamaño inicial
+        win.geometry(f"{width}x{height}")
+        win.update_idletasks()
+
+        # Centrado
+        screen_width = win.winfo_screenwidth()
+        screen_height = win.winfo_screenheight()
+        x = (screen_width // 2) - (width // 2)
+        y = (screen_height // 2) - (height // 2)
+        win.geometry(f"{width}x{height}+{x}+{y}")
+
+        # Quitar bordes
+        win.overrideredirect(True)
+
+        # Siempre delante
+        win.attributes("-topmost", True)
+        win.lift()
+        win.focus_force()
+        win.grab_set()
+
+        # --------------------------
+        # Barra superior personalizada
+        # --------------------------
+        top_bar = tk.Frame(win, bg="#333333", height=30)
+        top_bar.pack(fill="x", side="top")
+
+        # Botón X
+        close_btn = tk.Button(
+            top_bar,
+            text="✕",
+            font=("Arial", 12, "bold"),
+            fg="white",
+            bg="#333333",
+            bd=0,
+            activebackground="#555555",
+            command=win.destroy
+        )
+        close_btn.pack(side="right", padx=5)
+
+        # --------------------------
+        # Contenido del mensaje
+        # --------------------------
+        frame = tk.Frame(win, bd=2, relief="ridge")
+        frame.pack(expand=True, fill="both")
+
+        tk.Label(
+            frame,
+            text=texto,
+            font=("Arial", 14, "bold"),
+            wraplength=350
+        ).pack(expand=True)
+
+        self._current_window = win

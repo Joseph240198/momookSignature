@@ -2,7 +2,7 @@ from playwright.async_api import async_playwright
 from pathlib import Path
 from pywinauto import Application, findwindows
 import os, json, traceback, subprocess, time, asyncio
-from utils.utils import rotate_pdf, insert_signature, find_save_button, clean_signature_folder, wait_for_image, wait_for_status
+from utils.utils import rotate_pdf, insert_signature, find_save_button, clean_signature_folder, wait_for_image, wait_for_status, load_paths
 from utils.ui_lib import UILibrary 
 from utils.pdf_reader import generate_techlog_name, sort_techlog
 
@@ -10,7 +10,8 @@ from utils.pdf_reader import generate_techlog_name, sort_techlog
 USERNAME = "j.soler@baatraining.com"
 PASSWORD = "2401199883cCc"
 
-Path(FOLDER_PATH).mkdir(exist_ok=True)
+paths = load_paths()
+
 
 
 
@@ -51,6 +52,7 @@ async def handle_request(context, request):
 
     ui = UILibrary()
     url = request.url
+    process = None
 
     if "/ffs/logs/" in url and url.endswith("/print"):
         print(f"🖨 Print URL intercepted: {url}")
@@ -82,7 +84,8 @@ async def handle_request(context, request):
         # ----- Set filename -----
         filename = f"document_{int(time.time() * 1000)}.pdf"
         
-        full_path = os.path.join(FOLDER_PATH, filename)
+        full_path = Path(paths["FOLDER_PATH"]) / filename
+        full_path = full_path.resolve()
 
         edit = dlg.child_window(class_name="Edit")
 
@@ -109,22 +112,29 @@ async def handle_request(context, request):
         except:
             print("❌ Save button error")
         
-        # --------Insert signature in pdf ----------
+        # --------     INSERT SIGNATURE IN PDF   ----------
+        # =================================================
         try:
             try:
-                # Run wacom exe
-                process = subprocess.Popen([WACOM_EXE_PATH],
+            # --------------------------------- Run wacom exe -----------------------------------------
+            # =========================================================================================
+                process = subprocess.Popen(paths["WACOM_EXE_PATH"],
                                 stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE,
                                 text=True)
                 
-
                 # Runs in the background
                 print("WacomSTU Console running in background")
             except:
                 print("Error opening wacom tablet")
-            
+
+            if process is None:
+                ui.mostrar_mensaje_con_x("Wacom tablet not running. Try plugging the tablet.")
+                return
+    
             ui.mostrar_mensaje("Please, sign on the tablet. Then click ok or cancel to continue.")
+            # =========================================================================================
+            
             status = wait_for_status(timeout=35)
             
             if status == "OK":
@@ -132,7 +142,7 @@ async def handle_request(context, request):
                 signature_exists = wait_for_image(timeout = 120)
                 if signature_exists:
                     techlog_name = generate_techlog_name(full_path)
-                    new_path = insert_signature(full_path, SIGNATURE_IMAGE, (324.81, 548.72, 358.66, 677.43), techlog_name)
+                    new_path = insert_signature(full_path, paths["SIGNATURE_IMAGE"], (324.81, 548.72, 358.66, 677.43), techlog_name)
                     ui.cerrar_mensaje()
                     time.sleep(0.2)
                     clean_signature_folder()
@@ -147,7 +157,14 @@ async def handle_request(context, request):
                 #remove downloaded PDF
                 os.remove(full_path)
                 ui.cerrar_mensaje()
-                process.terminate()
+                if process is not None:
+                    try:
+                        process.terminate()
+                        process.wait(timeout=2)
+                    except Exception:
+                        process.kill()
+                else: 
+                    ui.mostrar_mensaje_con_x("wacom tablet not found")
                 #clean signature folder
                 clean_signature_folder()
                 
@@ -172,7 +189,6 @@ async def handle_request(context, request):
 # =================================== MAIN =============================================
 async def main():
     clean_signature_folder()
-    paths = utils.utils.load_paths()
     FOLDER_PATH = paths["FOLDER_PATH"]
 
     Path(FOLDER_PATH).mkdir(exist_ok=True)

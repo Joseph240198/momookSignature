@@ -204,6 +204,12 @@ def move_to_sim_folder(pdf_path, sim):
     print(f"✔ Techlog moved to: {final_path}")
     return final_path
 
+def detect_nonsense_in_pdf_name():
+    
+
+
+
+
 
 def sort_techlog(pdf_path):
     #Extract only the name of the techlog from the whole path

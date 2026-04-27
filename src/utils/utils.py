@@ -3,6 +3,7 @@ import os
 import time
 import traceback
 from pdf2image import convert_from_path
+from pathlib import Path
 import json
 
 
@@ -206,13 +207,15 @@ def wait_for_status(file_path=r"C:\Users\Jose A\Desktop\momook_signature\data\Te
 
 
 def load_paths():
+    base_dir = Path(__file__).resolve().parent.parent
+    config_path = base_dir.parent / "config" / "paths.json"
 
-    with open("config/paths.json") as f:
+    with open(config_path) as f:
         paths = json.load(f)
 
-    base_project = paths["base_dirs"]["projects"]
-    user_dir = paths["base_dir"]["user_dir"]
-    c_dir = paths["base_dir"]["c_dir"]
+    base_project = paths["base_dirs"]["project"]
+    user_dir = paths["base_dirs"]["user_dir"]
+    c_dir = paths["base_dirs"]["c_dir"]
 
     return {
         "EDGE_PATH" : os.path.join(c_dir, paths["software"]["edge_exe"]),
